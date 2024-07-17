@@ -4,8 +4,8 @@ import { db } from '../firebaseConfig';
 import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const containerStyle = {
-  width: '100%',
-  height: '400px',
+  width: '50vh',
+  height: '50vh',
 };
 
 const center = {
@@ -70,40 +70,58 @@ const MapComponent: React.FC = () => {
     }
   };
 
-  const deleteMarker = (index: number) => {
-    const markerToDelete = markers[index];
-    setMarkers((current) => current.filter((_, i) => i !== index));
-    deleteMarkerFromFirebase(markerToDelete.id);
+  const deleteMarker = async (id: string) => {
+    await deleteMarkerFromFirebase(id);
+    setMarkers((current) => current.filter((marker) => marker.id !== id));
   };
 
   const deleteAllMarkers = () => {
-    markers.forEach(marker => deleteMarkerFromFirebase(marker.id));
+    markers.forEach((marker) => deleteMarker(marker.id));
     setMarkers([]);
   };
 
   const onLoad = useCallback((map: any) => (mapRef.current = map), []);
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyDwlu8IU9fNDe9KZ72x4xMVnPgcWqUulDk">   {/*some problem with google cloud so key doesnt work properly */}
-  
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={10}
-        onClick={onMapClick}
-        onLoad={onLoad}
-      >
-        {markers.map((marker, index) => (
-          <Marker
-            key={marker.id || index}
-            position={{ lat: marker.lat, lng: marker.lng }}
-            label={marker.label}
-            draggable={true}
-            onDragEnd={(event) => onMarkerDragEnd(event, index)}
-          />
-        ))}
-      </GoogleMap>
-      <button onClick={deleteAllMarkers}>Delete All Markers</button>
+    <LoadScript googleMapsApiKey="AIzaSyDwlu8IU9fNDe9KZ72x4xMVnPgcWqUulDk"> {/* there are some issues with googleMapsApiKey related to google cloud error*/}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={10}
+          onClick={onMapClick}
+          onLoad={onLoad}
+        >
+          {markers.map((marker, index) => (
+            <Marker
+              key={marker.id || index}
+              position={{ lat: marker.lat, lng: marker.lng }}
+              label={marker.label}
+              draggable={true}
+              onDragEnd={(event) => onMarkerDragEnd(event, index)}
+            />
+          ))}
+        </GoogleMap>
+        <div style={{ marginTop: '10px' }}>
+          <button type="button" onClick={deleteAllMarkers}>Delete All Markers</button>
+        </div>
+        <div style={{ marginTop: '10px', width: '100%' }}>
+          <label htmlFor="markerDropdown">Delete Marker:</label>
+          <select
+            id="markerDropdown"
+            style={{ marginLeft: '10px' }}
+            value={''} // Set selected value logic here
+            onChange={(e) => deleteMarker(e.target.value)}
+          >
+            <option value="">Select Marker</option>
+            {markers.map((marker, index) => (
+              <option key={marker.id || index} value={marker.id}>
+                Marker {marker.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
     </LoadScript>
   );
 };
