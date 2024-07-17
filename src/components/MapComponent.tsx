@@ -84,7 +84,8 @@ const MapComponent: React.FC = () => {
   const onLoad = useCallback((map: any) => (mapRef.current = map), []);
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyDwlu8IU9fNDe9KZ72x4xMVnPgcWqUulDk">
+    <LoadScript googleMapsApiKey="AIzaSyDwlu8IU9fNDe9KZ72x4xMVnPgcWqUulDk">   {/*some problem with google cloud so key doesnt work properly */}
+  
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
