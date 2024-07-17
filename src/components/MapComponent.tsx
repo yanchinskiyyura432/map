@@ -9,8 +9,8 @@ const containerStyle = {
 };
 
 const center = {
-  lat: -3.745,
-  lng: -38.523,
+  lat: 49.8397,
+  lng: 24.0297,
 };
 
 const MapComponent: React.FC = () => {
