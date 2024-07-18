@@ -1,7 +1,7 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import { db } from '../firebaseConfig';
-import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { useMarkers } from '../hooks/useMarkers';
+import { MarkerData } from '../types/IMarkerData';
 
 const containerStyle = {
   width: '50vh',
@@ -14,76 +14,44 @@ const center = {
 };
 
 const MapComponent: React.FC = () => {
-  const [markers, setMarkers] = useState<any[]>([]);
-  const mapRef = useRef<any>(null);
+  const { markers, addMarker, updateMarker, deleteMarker, setMarkers } = useMarkers();
+  const mapRef = useRef<google.maps.Map | null>(null);
 
-  const onMapClick = useCallback((event: any) => {
-    const newMarker = {
-      lat: event.latLng.lat(),
-      lng: event.latLng.lng(),
-      label: (markers.length + 1).toString(),
-    };
-    setMarkers((current) => [...current, newMarker]);
-    saveMarkerToFirebase(newMarker);
-  }, [markers]);
-
-  const onMarkerDragEnd = useCallback((event: any, index: number) => {
-    const updatedMarkers = [...markers];
-    updatedMarkers[index] = {
-      ...updatedMarkers[index],
-      lat: event.latLng.lat(),
-      lng: event.latLng.lng(),
-    };
-    setMarkers(updatedMarkers);
-    updateMarkerInFirebase(updatedMarkers[index].id, updatedMarkers[index]);
-  }, [markers]);
-
-  const saveMarkerToFirebase = async (marker: any) => {
-    try {
-      const docRef = await addDoc(collection(db, 'quests'), {
-        location: { lat: marker.lat, lng: marker.lng },
-        timestamp: new Date(),
-        next: markers.length + 1,
-      });
-      marker.id = docRef.id;
-    } catch (e) {
-      console.error('Error adding document: ', e);
+  const onMapClick = useCallback((event: google.maps.MapMouseEvent) => {
+    if (event.latLng) {
+      const newMarker: MarkerData = {
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng(),
+        label: (markers.length + 1).toString(),
+      };
+      addMarker(newMarker);
     }
-  };
+  }, [markers, addMarker]);
 
-  const updateMarkerInFirebase = async (id: string, marker: any) => {
-    try {
-      const markerRef = doc(db, 'quests', id);
-      await updateDoc(markerRef, {
-        location: { lat: marker.lat, lng: marker.lng },
-      });
-    } catch (e) {
-      console.error('Error updating document: ', e);
+  const onMarkerDragEnd = useCallback((event: google.maps.MapMouseEvent, index: number) => {
+    if (event.latLng) {
+      const updatedMarker = {
+        ...markers[index],
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng(),
+      };
+      updateMarker(updatedMarker.id!, updatedMarker);
     }
-  };
-
-  const deleteMarkerFromFirebase = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'quests', id));
-    } catch (e) {
-      console.error('Error deleting document: ', e);
-    }
-  };
-
-  const deleteMarker = async (id: string) => {
-    await deleteMarkerFromFirebase(id);
-    setMarkers((current) => current.filter((marker) => marker.id !== id));
-  };
+  }, [markers, updateMarker]);
 
   const deleteAllMarkers = () => {
-    markers.forEach((marker) => deleteMarker(marker.id));
+    markers.forEach((marker) => {
+      if (marker.id) deleteMarker(marker.id);
+    });
     setMarkers([]);
   };
 
-  const onLoad = useCallback((map: any) => (mapRef.current = map), []);
+  const onLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+  }, []);
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyDwlu8IU9fNDe9KZ72x4xMVnPgcWqUulDk"> {/* there are some issues with googleMapsApiKey related to google cloud error*/}
+    <LoadScript googleMapsApiKey="AIzaSyDwlu8IU9fNDe9KZ72x4xMVnPgcWqUulDk">
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -110,7 +78,7 @@ const MapComponent: React.FC = () => {
           <select
             id="markerDropdown"
             style={{ marginLeft: '10px' }}
-            value={''} // Set selected value logic here
+            value={''}
             onChange={(e) => deleteMarker(e.target.value)}
           >
             <option value="">Select Marker</option>
