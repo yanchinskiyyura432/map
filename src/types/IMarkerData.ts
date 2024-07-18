@@ -1,4 +1,4 @@
-export interface MarkerData {
+export interface IMarkerData {
     id?: string;
     lat: number;
     lng: number;

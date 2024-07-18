@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MarkerData } from '../types/IMarkerData';
+import { IMarkerData } from '../types/IMarkerData';
 import { loadMarkersFromFirebase, saveMarkerToFirebase, updateMarkerInFirebase, deleteMarkerFromFirebase } from '../services/firestore';
 
 export const useMarkers = () => {
-  const [markers, setMarkers] = useState<MarkerData[]>([]);
+  const [markers, setMarkers] = useState<IMarkerData[]>([]);
 
   useEffect(() => {
     const fetchMarkers = async () => {
@@ -14,12 +14,12 @@ export const useMarkers = () => {
     fetchMarkers();
   }, []);
 
-  const addMarker = async (marker: MarkerData) => {
+  const addMarker = async (marker: IMarkerData) => {
     await saveMarkerToFirebase(marker);
     setMarkers((current) => [...current, marker]);
   };
 
-  const updateMarker = async (id: string, marker: MarkerData) => {
+  const updateMarker = async (id: string, marker: IMarkerData) => {
     await updateMarkerInFirebase(id, marker);
     setMarkers((current) => current.map((m) => (m.id === id ? marker : m)));
   };

@@ -1,8 +1,8 @@
 import { db } from '../firebaseConfig';
 import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
-import { MarkerData } from '../types/IMarkerData';
+import { IMarkerData } from '../types/IMarkerData';
 
-export const loadMarkersFromFirebase = async (): Promise<MarkerData[]> => {
+export const loadMarkersFromFirebase = async (): Promise<IMarkerData[]> => {
   const querySnapshot = await getDocs(collection(db, 'quests'));
   return querySnapshot.docs.map((doc) => {
     const data = doc.data();
@@ -11,11 +11,11 @@ export const loadMarkersFromFirebase = async (): Promise<MarkerData[]> => {
       lat: data.location.lat,
       lng: data.location.lng,
       label: data.next.toString(),
-    } as MarkerData;
+    } as IMarkerData;
   });
 };
 
-export const saveMarkerToFirebase = async (marker: MarkerData) => {
+export const saveMarkerToFirebase = async (marker: IMarkerData) => {
   const docRef = await addDoc(collection(db, 'quests'), {
     location: { lat: marker.lat, lng: marker.lng },
     timestamp: new Date(),
@@ -24,7 +24,7 @@ export const saveMarkerToFirebase = async (marker: MarkerData) => {
   marker.id = docRef.id;
 };
 
-export const updateMarkerInFirebase = async (id: string, marker: MarkerData) => {
+export const updateMarkerInFirebase = async (id: string, marker: IMarkerData) => {
   const markerRef = doc(db, 'quests', id);
   await updateDoc(markerRef, {
     location: { lat: marker.lat, lng: marker.lng },

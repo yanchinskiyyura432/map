@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useMarkers } from '../hooks/useMarkers';
-import { MarkerData } from '../types/IMarkerData';
+import { IMarkerData } from '../types/IMarkerData';
 
 const containerStyle = {
   width: '50vh',
@@ -19,7 +19,7 @@ const MapComponent: React.FC = () => {
 
   const onMapClick = useCallback((event: google.maps.MapMouseEvent) => {
     if (event.latLng) {
-      const newMarker: MarkerData = {
+      const newMarker: IMarkerData = {
         lat: event.latLng.lat(),
         lng: event.latLng.lng(),
         label: (markers.length + 1).toString(),
